@@ -1,0 +1,17 @@
+# Codecarbon backups
+*.bak
+
+# ML artifacts
+models/*.pth
+mlflow.db
+
+# Data logs (regenerated on each run)
+data/energy_log.csv
+data/baseline_energy_log.csv
+data/eco_epoch_log.csv
+
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
