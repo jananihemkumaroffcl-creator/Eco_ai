@@ -1,18 +1,17 @@
-#run_all.py
 import subprocess
 import sys
+import threading
 
-def run(script):
-    print(f"\n🚀 Running {script} ...\n")
-    result = subprocess.run([sys.executable, script])
-    if result.returncode != 0:
-        print(f"❌ Error while running {script}")
-        sys.exit(1)
- 
-print("🌱 Eco-AI Pipeline Starting...\n")
+def run_training():
+    print("\n🚀 Running baseline_train.py ...\n")
+    subprocess.run([sys.executable, "src/baseline_train.py"])
+    print("\n🚀 Running eco_train.py ...\n")
+    subprocess.run([sys.executable, "src/eco_train.py"])
+    print("\n✅ Training complete.\n")
 
-run("src/baseline_train.py")
-run("src/eco_train.py")
+# Run training in background so dashboard starts immediately
+t = threading.Thread(target=run_training, daemon=True)
+t.start()
 
 print("\n📊 Launching Dashboard...\n")
 subprocess.run([sys.executable, "src/dashboard.py"])

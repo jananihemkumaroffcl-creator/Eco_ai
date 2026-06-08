@@ -1,3 +1,4 @@
+import os
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
@@ -14,19 +15,21 @@ app = dash.Dash(__name__)
 server = app.server
 
 
+DATA_READY = lambda: all(os.path.exists(f) for f in [
+    "data/energy_log.csv", "data/baseline_energy_log.csv", "data/eco_epoch_log.csv"
+])
+
 # ---------------- LOAD LOGS ----------------
 def load_logs():
-    # codecarbon final summaries — used for Overview/comparison
+    if not DATA_READY():
+        return None, None, None
     eco = pd.read_csv("data/energy_log.csv")
     base = pd.read_csv("data/baseline_energy_log.csv")
-
-    # per-epoch log — used for Analytics graph
     epoch_log = pd.read_csv("data/eco_epoch_log.csv")
     epoch_log["timestamp"] = pd.to_datetime(epoch_log["timestamp"])
     epoch_log["energy_consumed"] = pd.to_numeric(epoch_log["energy_consumed"], errors="coerce")
     epoch_log = epoch_log.sort_values("timestamp")
     epoch_log["timestamp"] = epoch_log["timestamp"] + pd.to_timedelta(np.arange(len(epoch_log)), unit="ms")
-
     return eco, base, epoch_log
 
 
@@ -118,8 +121,13 @@ app.layout = html.Div([
     ]
 )
 def update(n, metric):
-
     eco, base, epoch_log = load_logs()
+
+    if eco is None:
+        loading = html.Div("⏳ Training in progress... Dashboard will update automatically.",
+                           style={"textAlign": "center", "padding": "40px", "fontSize": "18px"})
+        empty_fig = go.Figure()
+        return loading, empty_fig, empty_fig, empty_fig, empty_fig, empty_fig, empty_fig, []
 
     eco_last = eco.iloc[-1]
     base_last = base.iloc[-1]
