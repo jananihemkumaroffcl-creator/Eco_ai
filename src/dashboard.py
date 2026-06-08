@@ -1,4 +1,3 @@
-import os
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
@@ -14,18 +13,16 @@ CARBON_BUDGET = 0.002
 app = dash.Dash(__name__)
 server = app.server
 
-
-DATA_READY = lambda: all(os.path.exists(f) for f in [
-    "data/energy_log.csv", "data/baseline_energy_log.csv", "data/eco_epoch_log.csv"
-])
-
 # ---------------- LOAD LOGS ----------------
+HF_BASE = "https://huggingface.co/datasets/jh123x/Eco-ai-data/resolve/main"
+
 def load_logs():
-    if not DATA_READY():
+    try:
+        eco = pd.read_csv(f"{HF_BASE}/energy_log.csv")
+        base = pd.read_csv(f"{HF_BASE}/baseline_energy_log.csv")
+        epoch_log = pd.read_csv(f"{HF_BASE}/eco_epoch_log.csv")
+    except Exception:
         return None, None, None
-    eco = pd.read_csv("data/energy_log.csv")
-    base = pd.read_csv("data/baseline_energy_log.csv")
-    epoch_log = pd.read_csv("data/eco_epoch_log.csv")
     epoch_log["timestamp"] = pd.to_datetime(epoch_log["timestamp"])
     epoch_log["energy_consumed"] = pd.to_numeric(epoch_log["energy_consumed"], errors="coerce")
     epoch_log = epoch_log.sort_values("timestamp")
@@ -247,7 +244,7 @@ def update(n, metric):
     energy_fig.update_layout(transition_duration=500, xaxis_title="Epoch / Step")
 
     # ---------- CPU ----------
-    cpu = psutil.cpu_percent(interval=0.5)
+    cpu = psutil.cpu_percent(interval=None)
 
     cpu_gauge = go.Figure(go.Indicator(
         mode="gauge+number",

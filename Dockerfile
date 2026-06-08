@@ -11,4 +11,4 @@ RUN mkdir -p data models
 
 EXPOSE 8050
 
-CMD ["python", "run_all.py"]
+CMD ["python", "src/dashboard.py"]
